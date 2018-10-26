@@ -1,0 +1,48 @@
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Blob.Protocol;
+using System.Configuration;
+using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+
+namespace AzureUploadApp
+{
+    class Program
+    {
+        const string StorageAccountName = "parammystorageaccount";
+        const string StorageAccountKey = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+        const string FolderPath = @"C:\Azuretest";
+
+        static void Main()
+        {
+            var storageAccount = new CloudStorageAccount(new StorageCredentials(StorageAccountName, StorageAccountKey), true);
+
+            var blobClient = storageAccount.CreateCloudBlobClient();
+
+            var container = blobClient.GetContainerReference("paramtest-container");
+            container.CreateIfNotExists();
+            container.SetPermissions(new BlobContainerPermissions()
+            {
+                PublicAccess = BlobContainerPublicAccessType.Blob
+            });
+
+            foreach (var filePath in Directory.GetFiles(FolderPath, "*.*", SearchOption.AllDirectories))
+            {
+                var blob = container.GetBlockBlobReference(filePath);
+                blob.UploadFromFile(filePath);
+
+                Console.WriteLine("Uploaded {0}", filePath);
+
+            }
+
+            Console.WriteLine("Completed");
+        }
+
+    }
+}
